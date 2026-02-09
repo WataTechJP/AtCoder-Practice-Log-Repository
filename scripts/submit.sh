@@ -95,7 +95,8 @@ fi
 
 # コミット
 PROBLEM_UPPER=$(echo "$PROBLEM" | tr '[:lower:]' '[:upper:]')
-COMMIT_MSG="${CONTEST} ${PROBLEM_UPPER} [${STATUS^^}]"
+STATUS_UPPER=$(echo "$STATUS" | tr '[:lower:]' '[:upper:]')
+COMMIT_MSG="${CONTEST} ${PROBLEM_UPPER} [${STATUS_UPPER}]"
 git -C "$ROOT_DIR" commit -m "$COMMIT_MSG" || {
   echo "⚠️  Nothing to commit (no changes)." >&2
   exit 0

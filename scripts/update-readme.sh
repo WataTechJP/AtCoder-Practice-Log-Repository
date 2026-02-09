@@ -16,11 +16,18 @@ if [[ ! -d "$ABC_DIR" ]]; then
   exit 1
 fi
 
-# 解答済み問題を収集
-declare -a ALL_ENTRIES=()
-declare -a AC_ENTRIES=()
-declare -a WA_ENTRIES=()
-declare -a PARTIAL_ENTRIES=()
+# 一時ファイル
+TMP_ALL=$(mktemp)
+TMP_AC=$(mktemp)
+TMP_WA=$(mktemp)
+TMP_PARTIAL=$(mktemp)
+TMP_TABLE=$(mktemp)
+TMP_README=$(mktemp)
+trap "rm -f $TMP_ALL $TMP_AC $TMP_WA $TMP_PARTIAL $TMP_TABLE $TMP_README" EXIT
+
+AC_COUNT=0
+WA_COUNT=0
+PARTIAL_COUNT=0
 
 for CONTEST_DIR in "$ABC_DIR"/ABC*/; do
   [[ -d "$CONTEST_DIR" ]] || continue
@@ -38,19 +45,22 @@ for CONTEST_DIR in "$ABC_DIR"/ABC*/; do
       if [[ -f "$STATUS_FILE" ]]; then
         STATUS=$(cat "$STATUS_FILE")
       else
-        STATUS="ac"  # デフォルトはAC
+        STATUS="ac"
       fi
 
       # ステータスアイコン
       case "$STATUS" in
         ac)
           STATUS_ICON="✅"
+          AC_COUNT=$((AC_COUNT + 1))
           ;;
         wa)
           STATUS_ICON="❌"
+          WA_COUNT=$((WA_COUNT + 1))
           ;;
         partial)
           STATUS_ICON="△"
+          PARTIAL_COUNT=$((PARTIAL_COUNT + 1))
           ;;
         *)
           STATUS_ICON="?"
@@ -66,115 +76,72 @@ for CONTEST_DIR in "$ABC_DIR"/ABC*/; do
 
       # ソート用にゼロ埋め番号を付加
       SORT_KEY=$(printf "%04d_%s" "$NUM" "$PROBLEM")
-      ENTRY="${SORT_KEY}|${CONTEST}|${PROBLEM}|${URL}|${STATUS_ICON}"
+      LINE="| ${CONTEST} | ${PROBLEM} | ${STATUS_ICON} | [問題](${URL}) |"
 
-      ALL_ENTRIES+=("$ENTRY")
+      echo "${SORT_KEY}|${LINE}" >> "$TMP_ALL"
       case "$STATUS" in
-        ac) AC_ENTRIES+=("$ENTRY") ;;
-        wa) WA_ENTRIES+=("$ENTRY") ;;
-        partial) PARTIAL_ENTRIES+=("$ENTRY") ;;
+        ac) echo "${SORT_KEY}|${LINE}" >> "$TMP_AC" ;;
+        wa) echo "${SORT_KEY}|${LINE}" >> "$TMP_WA" ;;
+        partial) echo "${SORT_KEY}|${LINE}" >> "$TMP_PARTIAL" ;;
       esac
     fi
   done
 done
 
-# ソート関数
-sort_entries() {
-  local -n arr=$1
-  if [[ ${#arr[@]} -gt 0 ]]; then
-    IFS=$'\n' arr=($(sort <<<"${arr[*]}")); unset IFS
+TOTAL=$((AC_COUNT + WA_COUNT + PARTIAL_COUNT))
+
+# テーブルを一時ファイルに書き出し
+{
+  echo "## 解答一覧"
+  echo ""
+  echo "**Total: ${TOTAL} problems** (✅ ${AC_COUNT} AC / ❌ ${WA_COUNT} WA / △ ${PARTIAL_COUNT} Partial)"
+  echo ""
+  echo "### 全問題"
+  echo ""
+  echo "| Contest | Problem | Status | Link |"
+  echo "|---------|---------|--------|------|"
+  if [[ -s "$TMP_ALL" ]]; then
+    sort "$TMP_ALL" | cut -d'|' -f2-
   fi
-}
+  echo ""
+  echo "### ✅ AC (${AC_COUNT})"
+  echo ""
+  echo "| Contest | Problem | Status | Link |"
+  echo "|---------|---------|--------|------|"
+  if [[ -s "$TMP_AC" ]]; then
+    sort "$TMP_AC" | cut -d'|' -f2-
+  fi
+  echo ""
+  echo "### ❌ WA (${WA_COUNT})"
+  echo ""
+  echo "| Contest | Problem | Status | Link |"
+  echo "|---------|---------|--------|------|"
+  if [[ -s "$TMP_WA" ]]; then
+    sort "$TMP_WA" | cut -d'|' -f2-
+  fi
+  echo ""
+  echo "### △ Partial (${PARTIAL_COUNT})"
+  echo ""
+  echo "| Contest | Problem | Status | Link |"
+  echo "|---------|---------|--------|------|"
+  if [[ -s "$TMP_PARTIAL" ]]; then
+    sort "$TMP_PARTIAL" | cut -d'|' -f2-
+  fi
+} > "$TMP_TABLE"
 
-sort_entries ALL_ENTRIES
-sort_entries AC_ENTRIES
-sort_entries WA_ENTRIES
-sort_entries PARTIAL_ENTRIES
-
-# テーブル行を生成する関数
-generate_rows() {
-  local -n entries=$1
-  local rows=""
-  for ENTRY in "${entries[@]}"; do
-    CONTEST=$(echo "$ENTRY" | cut -d'|' -f2)
-    PROBLEM=$(echo "$ENTRY" | cut -d'|' -f3)
-    URL=$(echo "$ENTRY" | cut -d'|' -f4)
-    STATUS_ICON=$(echo "$ENTRY" | cut -d'|' -f5)
-    rows="${rows}
-| ${CONTEST} | ${PROBLEM} | ${STATUS_ICON} | [問題](${URL}) |"
-  done
-  echo "$rows"
-}
-
-# カウント
-TOTAL=${#ALL_ENTRIES[@]}
-AC_COUNT=${#AC_ENTRIES[@]}
-WA_COUNT=${#WA_ENTRIES[@]}
-PARTIAL_COUNT=${#PARTIAL_ENTRIES[@]}
-
-# メインテーブル生成
-TABLE="## 解答一覧
-
-**Total: ${TOTAL} problems** (✅ ${AC_COUNT} AC / ❌ ${WA_COUNT} WA / △ ${PARTIAL_COUNT} Partial)
-
-### 全問題
-
-| Contest | Problem | Status | Link |
-|---------|---------|--------|------|"
-
-if [[ ${#ALL_ENTRIES[@]} -gt 0 ]]; then
-  TABLE="${TABLE}$(generate_rows ALL_ENTRIES)"
-fi
-
-# ACテーブル
-TABLE="${TABLE}
-
-### ✅ AC (${AC_COUNT})
-
-| Contest | Problem | Status | Link |
-|---------|---------|--------|------|"
-
-if [[ ${#AC_ENTRIES[@]} -gt 0 ]]; then
-  TABLE="${TABLE}$(generate_rows AC_ENTRIES)"
-fi
-
-# WAテーブル
-TABLE="${TABLE}
-
-### ❌ WA (${WA_COUNT})
-
-| Contest | Problem | Status | Link |
-|---------|---------|--------|------|"
-
-if [[ ${#WA_ENTRIES[@]} -gt 0 ]]; then
-  TABLE="${TABLE}$(generate_rows WA_ENTRIES)"
-fi
-
-# Partialテーブル
-TABLE="${TABLE}
-
-### △ Partial (${PARTIAL_COUNT})
-
-| Contest | Problem | Status | Link |
-|---------|---------|--------|------|"
-
-if [[ ${#PARTIAL_ENTRIES[@]} -gt 0 ]]; then
-  TABLE="${TABLE}$(generate_rows PARTIAL_ENTRIES)"
-fi
-
-# READMEを更新
+# READMEを更新（解答一覧セクション以降を置き換え）
 if grep -q "^## 解答一覧" "$README"; then
-  # 既存のセクションを置換
-  awk -v table="$TABLE" '
-    /^## 解答一覧/ { skip=1; print table; next }
-    /^## / && skip { skip=0 }
-    !skip { print }
-  ' "$README" > "${README}.tmp"
-  mv "${README}.tmp" "$README"
+  # 解答一覧の行番号を取得
+  LINE_NUM=$(grep -n "^## 解答一覧" "$README" | head -1 | cut -d: -f1)
+  # その前の行までをコピー
+  head -n $((LINE_NUM - 1)) "$README" > "$TMP_README"
+  # 新しいテーブルを追加
+  cat "$TMP_TABLE" >> "$TMP_README"
+  mv "$TMP_README" "$README"
 else
-  # 新規追加（ファイル末尾に）
+  # 新規追加
   echo "" >> "$README"
-  echo "$TABLE" >> "$README"
+  cat "$TMP_TABLE" >> "$README"
 fi
 
 echo "✅ README updated: ${TOTAL} problems (✅${AC_COUNT} / ❌${WA_COUNT} / △${PARTIAL_COUNT})"
