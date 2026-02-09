@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files (keep testcases, ignore temp)
+*.tmp
+
+# Environment
+.env
+.env.local
+
+# Work folder (local only)
+A/
+
+# Old scripts
+scripts/new_problem.sh
