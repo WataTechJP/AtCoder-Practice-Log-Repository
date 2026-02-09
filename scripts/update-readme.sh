@@ -129,19 +129,35 @@ TOTAL=$((AC_COUNT + WA_COUNT + PARTIAL_COUNT))
   fi
 } > "$TMP_TABLE"
 
-# READMEを更新（解答一覧セクション以降を置き換え）
+# READMEを更新（解答一覧セクションを置き換え）
 if grep -q "^## 解答一覧" "$README"; then
-  # 解答一覧の行番号を取得
-  LINE_NUM=$(grep -n "^## 解答一覧" "$README" | head -1 | cut -d: -f1)
-  # その前の行までをコピー
-  head -n $((LINE_NUM - 1)) "$README" > "$TMP_README"
-  # 新しいテーブルを追加
-  cat "$TMP_TABLE" >> "$TMP_README"
+  # 解答一覧の開始行と次のセクションの行番号を取得
+  START_LINE=$(grep -n "^## 解答一覧" "$README" | head -1 | cut -d: -f1)
+  # 解答一覧の次の ## セクションを探す
+  END_LINE=$(tail -n +$((START_LINE + 1)) "$README" | grep -n "^## " | head -1 | cut -d: -f1)
+
+  if [[ -n "$END_LINE" ]]; then
+    # 次のセクションがある場合
+    END_LINE=$((START_LINE + END_LINE - 1))
+    # 解答一覧の前 + 新しいテーブル + 解答一覧の後
+    head -n $((START_LINE - 1)) "$README" > "$TMP_README"
+    cat "$TMP_TABLE" >> "$TMP_README"
+    echo "" >> "$TMP_README"
+    tail -n +$((END_LINE)) "$README" >> "$TMP_README"
+  else
+    # 解答一覧が最後のセクションの場合
+    head -n $((START_LINE - 1)) "$README" > "$TMP_README"
+    cat "$TMP_TABLE" >> "$TMP_README"
+  fi
   mv "$TMP_README" "$README"
 else
-  # 新規追加
-  echo "" >> "$README"
-  cat "$TMP_TABLE" >> "$README"
+  # 新規追加（ヘッダーの後に挿入）
+  head -n 4 "$README" > "$TMP_README"
+  echo "" >> "$TMP_README"
+  cat "$TMP_TABLE" >> "$TMP_README"
+  echo "" >> "$TMP_README"
+  tail -n +5 "$README" >> "$TMP_README"
+  mv "$TMP_README" "$README"
 fi
 
 echo "✅ README updated: ${TOTAL} problems (✅${AC_COUNT} / ❌${WA_COUNT} / △${PARTIAL_COUNT})"

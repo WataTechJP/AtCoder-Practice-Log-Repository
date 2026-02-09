@@ -3,6 +3,33 @@
 AtCoderの解答を管理するリポジトリです。
 python version 3.13.7
 
+## 解答一覧
+
+**Total: 1 problems** (✅ 0 AC / ❌ 1 WA / △ 0 Partial)
+
+### 全問題
+
+| Contest | Problem | Status | Link |
+|---------|---------|--------|------|
+| ABC311 | B | ❌ | [問題](https://atcoder.jp/contests/abc311/tasks/abc311_b) |
+
+### ✅ AC (0)
+
+| Contest | Problem | Status | Link |
+|---------|---------|--------|------|
+
+### ❌ WA (1)
+
+| Contest | Problem | Status | Link |
+|---------|---------|--------|------|
+| ABC311 | B | ❌ | [問題](https://atcoder.jp/contests/abc311/tasks/abc311_b) |
+
+### △ Partial (0)
+
+| Contest | Problem | Status | Link |
+|---------|---------|--------|------|
+
+
 ## ワークフロー
 
 ```
@@ -111,29 +138,3 @@ acs 137 A --ac --push  # AC でコミット&プッシュ
 acs 137 B --wa         # WA でコミット
 acs 137 C --partial    # 部分点でコミット
 ```
-
-## 解答一覧
-
-**Total: 1 problems** (✅ 0 AC / ❌ 1 WA / △ 0 Partial)
-
-### 全問題
-
-| Contest | Problem | Status | Link |
-|---------|---------|--------|------|
-| ABC311 | B | ❌ | [問題](https://atcoder.jp/contests/abc311/tasks/abc311_b) |
-
-### ✅ AC (0)
-
-| Contest | Problem | Status | Link |
-|---------|---------|--------|------|
-
-### ❌ WA (1)
-
-| Contest | Problem | Status | Link |
-|---------|---------|--------|------|
-| ABC311 | B | ❌ | [問題](https://atcoder.jp/contests/abc311/tasks/abc311_b) |
-
-### △ Partial (0)
-
-| Contest | Problem | Status | Link |
-|---------|---------|--------|------|
