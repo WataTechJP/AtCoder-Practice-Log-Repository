@@ -14,18 +14,18 @@ if [[ $# -lt 2 ]]; then
 fi
 
 NUMBER="$1"
-PROBLEM="$2"
+PROBLEM=$(echo "$2" | tr '[:lower:]' '[:upper:]')
 PUSH="${3:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # 番号を3桁にゼロ埋めしてコンテスト名を生成
-CONTEST=$(printf "abc%03d" "$NUMBER")
+CONTEST=$(printf "ABC%03d" "$NUMBER")
 
 # ディレクトリ名は大文字のABC
 PREFIX_UPPER="ABC"
-TARGET_DIR="${ROOT_DIR}/${PREFIX_UPPER}/${CONTEST}"
+TARGET_DIR="${ROOT_DIR}/${PREFIX_UPPER}/${CONTEST}/${PROBLEM}"
 TARGET_FILE="${TARGET_DIR}/${PROBLEM}.py"
 TESTCASE_DIR="${TARGET_DIR}/testcases"
 
@@ -47,8 +47,8 @@ git -C "$ROOT_DIR" add "$TARGET_FILE"
 
 # テストケースがあればそれもステージ
 if [[ -d "$TESTCASE_DIR" ]]; then
-  git -C "$ROOT_DIR" add "${TESTCASE_DIR}/${PROBLEM}_"*.in 2>/dev/null || true
-  git -C "$ROOT_DIR" add "${TESTCASE_DIR}/${PROBLEM}_"*.out 2>/dev/null || true
+  git -C "$ROOT_DIR" add "${TESTCASE_DIR}/"*.in 2>/dev/null || true
+  git -C "$ROOT_DIR" add "${TESTCASE_DIR}/"*.out 2>/dev/null || true
 fi
 
 # コミット

@@ -4,7 +4,7 @@ set -euo pipefail
 # =====================================================
 # new.sh - 問題解答用ファイルを作成
 # Usage: ./scripts/new.sh <number> <problem>
-# Example: ./scripts/new.sh 1 a  → ABC/abc001/a.py
+# Example: ./scripts/new.sh 1 A  → ABC/ABC001/A/A.py
 # =====================================================
 
 if [[ $# -lt 2 ]]; then
@@ -15,17 +15,22 @@ if [[ $# -lt 2 ]]; then
 fi
 
 NUMBER="$1"
-PROBLEM="$2"
+PROBLEM=$(echo "$2" | tr '[:lower:]' '[:upper:]')
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # 番号を3桁にゼロ埋めしてコンテスト名を生成
-CONTEST=$(printf "abc%03d" "$NUMBER")
+CONTEST=$(printf "ABC%03d" "$NUMBER")
+CONTEST_LOWER=$(printf "abc%03d" "$NUMBER")
+PROBLEM_LOWER=$(echo "$PROBLEM" | tr '[:upper:]' '[:lower:]')
+
+# 問題URL
+PROBLEM_URL="https://atcoder.jp/contests/${CONTEST_LOWER}/tasks/${CONTEST_LOWER}_${PROBLEM_LOWER}"
 
 # ディレクトリ名は大文字のABC
 PREFIX_UPPER="ABC"
-TARGET_DIR="${ROOT_DIR}/${PREFIX_UPPER}/${CONTEST}"
+TARGET_DIR="${ROOT_DIR}/${PREFIX_UPPER}/${CONTEST}/${PROBLEM}"
 TEMPLATE="${ROOT_DIR}/template.py"
 TARGET_FILE="${TARGET_DIR}/${PROBLEM}.py"
 TESTCASE_DIR="${TARGET_DIR}/testcases"
@@ -39,15 +44,16 @@ if [[ ! -f "$TEMPLATE" ]]; then
 fi
 
 if [[ ! -f "$TARGET_FILE" ]]; then
-  cp "$TEMPLATE" "$TARGET_FILE"
+  sed "s|{{PROBLEM_URL}}|$PROBLEM_URL|g" "$TEMPLATE" > "$TARGET_FILE"
   echo "✅ Created: $TARGET_FILE"
+  echo "🔗 URL: $PROBLEM_URL"
 else
   echo "📁 Already exists: $TARGET_FILE"
 fi
 
 # サンプルテストケースファイルを作成（なければ）
-SAMPLE_IN="${TESTCASE_DIR}/${PROBLEM}_1.in"
-SAMPLE_OUT="${TESTCASE_DIR}/${PROBLEM}_1.out"
+SAMPLE_IN="${TESTCASE_DIR}/1.in"
+SAMPLE_OUT="${TESTCASE_DIR}/1.out"
 
 if [[ ! -f "$SAMPLE_IN" ]]; then
   touch "$SAMPLE_IN"
@@ -60,7 +66,7 @@ fi
 echo ""
 echo "📌 Next steps:"
 echo "   1. Edit solution: $TARGET_FILE"
-echo "   2. Add testcases: $TESTCASE_DIR/${PROBLEM}_*.in/out"
+echo "   2. Add testcases: $TESTCASE_DIR/*.in/out"
 echo "   3. Run tests: ./scripts/test.sh ${NUMBER} ${PROBLEM}"
 echo "   4. Submit: ./scripts/submit.sh ${NUMBER} ${PROBLEM}"
 

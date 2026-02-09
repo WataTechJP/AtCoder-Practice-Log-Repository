@@ -16,17 +16,17 @@ if [[ $# -lt 2 ]]; then
 fi
 
 NUMBER="$1"
-PROBLEM="$2"
+PROBLEM=$(echo "$2" | tr '[:lower:]' '[:upper:]')
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # 番号を3桁にゼロ埋めしてコンテスト名を生成
-CONTEST=$(printf "abc%03d" "$NUMBER")
+CONTEST=$(printf "ABC%03d" "$NUMBER")
 
 # ディレクトリ名は大文字のABC
 PREFIX_UPPER="ABC"
-TARGET_FILE="${ROOT_DIR}/${PREFIX_UPPER}/${CONTEST}/${PROBLEM}.py"
+TARGET_FILE="${ROOT_DIR}/${PREFIX_UPPER}/${CONTEST}/${PROBLEM}/${PROBLEM}.py"
 
 if [[ ! -f "$TARGET_FILE" ]]; then
   echo "❌ File not found: $TARGET_FILE" >&2
