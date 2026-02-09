@@ -81,8 +81,18 @@ Results: ✅ 2 passed, ❌ 0 failed
 ### 5. 解答をcommit & push
 
 ```bash
-./scripts/submit.sh 1 A --push
+./scripts/submit.sh 1 A --ac --push      # ✅ AC (正解)
+./scripts/submit.sh 1 B --wa             # ❌ WA (不正解/未解決)
+./scripts/submit.sh 1 C --partial --push # △ 部分点
 ```
+
+| ステータス | フラグ | 意味 |
+|-----------|--------|------|
+| ✅ | `--ac` | AC (Accepted) |
+| ❌ | `--wa` | WA (Wrong Answer / 未解決) |
+| △ | `--partial` | 部分点 |
+
+※ コミット時に解答一覧が自動更新されます
 
 ## エイリアス（任意）
 
@@ -94,7 +104,17 @@ alias acs="$HOME/Private/AtCoder/scripts/submit.sh"
 ```
 
 ```bash
-acn 137 A         # ファイル作成
-act 137 A         # テスト実行
-acr 137 A         # 手動実行
-acs 137 A --push  # コミット&プッシュ
+acn 137 A              # ファイル作成
+act 137 A              # テスト実行
+acr 137 A              # 手動実行
+acs 137 A --ac --push  # AC でコミット&プッシュ
+acs 137 B --wa         # WA でコミット
+acs 137 C --partial    # 部分点でコミット
+```
+
+## 解答一覧
+
+| Contest | Problem | Status | Link |
+|---------|---------|--------|------|
+
+**Total: 0 problems** (✅ 0 AC / ❌ 0 WA / △ 0 Partial)
